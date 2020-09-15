@@ -146,7 +146,8 @@ namespace Chim_En_DOTNET.Controllers.API
       List<Claim> claims = new List<Claim> {
           new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
           new Claim(ClaimTypes.Name, user.UserName.ToString()),
-          new Claim("Roles", "Admin")
+          new Claim("SuperUser", user.isSuperUser.ToString()),
+          new Claim("Staff", user.isStaff.ToString())
       };
 
       SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
