@@ -27,14 +27,4 @@ namespace Chim_En_DOTNET.Helpers
       this.NextPage = this.PageNumber == this.LastPage ? this.LastPage : this.PageNumber + 1;
     }
   }
-
-
-  public class ProductsFilterResponse<T> : PagedResponse<T>
-  {
-    public int CategoryId { get; set; }
-    public ProductsFilterResponse(T data, int pageNumber, int pageSize, int totalRecords, int categoryId) : base(data, pageNumber, pageSize, totalRecords)
-    {
-      this.CategoryId = categoryId;
-    }
-  }
 }

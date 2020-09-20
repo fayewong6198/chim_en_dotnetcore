@@ -3,15 +3,17 @@ using System;
 using Chim_En_DOTNET.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Chim_En_DOTNET.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200915123008_add staff2")]
+    partial class addstaff2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -183,7 +185,7 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<string>("DeviceId")
+                    b.Property<string>("DevicedId")
                         .HasColumnType("text");
 
                     b.Property<string>("Note")
@@ -265,15 +267,10 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<string>("Mobile")
                         .HasColumnType("text");
 
-                    b.Property<int?>("PaymentId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("UserId")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PaymentId");
 
                     b.ToTable("PaymentUserDetail");
                 });
@@ -309,9 +306,6 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<double>("Promotion")
                         .HasColumnType("double precision");
 
-                    b.Property<int>("RatingCount")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Sku")
                         .HasColumnType("text");
 
@@ -321,9 +315,6 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<double>("TotalRating")
-                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
@@ -404,9 +395,6 @@ namespace Chim_En_DOTNET.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("DeviceId")
-                        .HasColumnType("text");
 
                     b.Property<string>("FullName")
                         .HasColumnType("text");
@@ -686,9 +674,6 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<string>("EmailToken")
-                        .HasColumnType("text");
-
                     b.Property<string>("FullName")
                         .HasColumnType("text");
 
@@ -779,17 +764,10 @@ namespace Chim_En_DOTNET.Migrations
             modelBuilder.Entity("Chim_En_DOTNET.Models.PaymentProductDetail", b =>
                 {
                     b.HasOne("Chim_En_DOTNET.Models.Payment", "Payment")
-                        .WithMany("PaymentProductDetails")
+                        .WithMany()
                         .HasForeignKey("PaymentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Chim_En_DOTNET.Models.PaymentUserDetail", b =>
-                {
-                    b.HasOne("Chim_En_DOTNET.Models.Payment", null)
-                        .WithMany("PaymentUserDetails")
-                        .HasForeignKey("PaymentId");
                 });
 
             modelBuilder.Entity("Chim_En_DOTNET.Models.Product", b =>
@@ -817,7 +795,7 @@ namespace Chim_En_DOTNET.Migrations
                         .HasForeignKey("ApplicationUserId");
 
                     b.HasOne("Chim_En_DOTNET.Models.Review", "Review")
-                        .WithMany("Replies")
+                        .WithMany()
                         .HasForeignKey("ReviewId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

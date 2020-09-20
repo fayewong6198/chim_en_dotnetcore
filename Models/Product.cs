@@ -14,6 +14,7 @@ namespace Chim_En_DOTNET.Models
 
     [Required]
     public string Title { get; set; }
+
     public string Slug { get; set; }
     public string Description { get; set; }
     public string FullDescription { get; set; }
@@ -21,7 +22,12 @@ namespace Chim_En_DOTNET.Models
 
     public ICollection<ProductImage> Images { get; set; }
 
+
     public double Promotion { get; set; }
+
+    public double TotalRating { get; set; }
+
+    public int RatingCount { get; set; }
 
     public int Available { get; set; }
 
@@ -40,6 +46,13 @@ namespace Chim_En_DOTNET.Models
         this.Slug = this.Title;
       }
     }
+
+    public double getRating()
+    {
+
+      return this.RatingCount == 0 ? 0 : this.TotalRating / Convert.ToDouble(this.RatingCount);
+    }
+
 
     public int GetPrice()
     {

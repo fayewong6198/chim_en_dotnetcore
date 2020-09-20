@@ -11,9 +11,11 @@ namespace Chim_En_DOTNET.Models
     public string Mobile { get; set; }
     public string FullName { get; set; }
 
-    public bool isStaff { get; set; }
+    public bool IsStaff { get; set; }
 
-    public bool isSuperUser { get; set; }
+    public string EmailToken { get; set; }
+
+    public bool IsSuperUser { get; set; }
     public GenderChoices? Gender { get; set; }
 
     [DataType(DataType.Date)]
@@ -40,8 +42,4 @@ namespace Chim_En_DOTNET.Models
       Male, Female
     }
   }
-
-
-
-
 }

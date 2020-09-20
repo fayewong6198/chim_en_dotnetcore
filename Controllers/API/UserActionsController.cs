@@ -147,6 +147,7 @@ namespace Chim_En_DOTNET.Controllers.API
       }
 
       cartItem = await _context.CartItems.Where(c => c.CartId == cart.Id && c.ProductId == changeQuantityParams.ProductId).FirstOrDefaultAsync();
+
       if (cartItem == null)
       {
         return BadRequest(new { msg = "CartItem not found" });
@@ -173,7 +174,6 @@ namespace Chim_En_DOTNET.Controllers.API
       else
       {
         cart = await _context.Carts.Where(c => c.SessionId.Equals(sessionId)).Include(c => c.CartItems).FirstOrDefaultAsync();
-
       }
       return Ok(cart);
 
@@ -202,8 +202,6 @@ namespace Chim_En_DOTNET.Controllers.API
       {
         string userId = User.Claims.FirstOrDefault(c => c.Type.Equals(ClaimTypes.NameIdentifier)).Value;
         cart = await _context.Carts.Where(c => c.ApplicationUserId.Equals(userId)).FirstOrDefaultAsync();
-
-
 
       }
       else if (!string.IsNullOrEmpty(sessionId))
@@ -283,7 +281,6 @@ namespace Chim_En_DOTNET.Controllers.API
       if (User.Identity.IsAuthenticated)
       {
         return Ok();
-
       }
       else if (!string.IsNullOrEmpty(sessionId))
       {

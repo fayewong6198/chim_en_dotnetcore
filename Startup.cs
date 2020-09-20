@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Chim_En_DOTNET.Helpers;
 
 namespace Chim_En_DOTNET
 {
@@ -52,6 +53,14 @@ namespace Chim_En_DOTNET
           .AddEntityFrameworkStores<ApplicationDbContext>();
       services.AddControllersWithViews();
       services.AddRazorPages();
+
+      var notificationMetadata =
+ Configuration.GetSection("NotificationMetadata").
+ Get<NotificationMetadata>();
+      services.AddSingleton(notificationMetadata);
+
+
+
       services.AddControllers().AddNewtonsoftJson(x =>
           {
             x.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;

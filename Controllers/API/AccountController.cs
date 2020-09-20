@@ -16,6 +16,10 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using System.Collections;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using MailKit.Net.Smtp;
+using MimeKit;
+using Chim_En_DOTNET.Helpers;
+using System.Security.Authentication;
 
 namespace Chim_En_DOTNET.Controllers.API
 {
@@ -40,13 +44,18 @@ namespace Chim_En_DOTNET.Controllers.API
     public async Task<IActionResult> Login(LoginParams loginParams)
     {
       // Console.WriteLine("asdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd");
-      ApplicationUser user = await _context.ApplicationUser.FirstOrDefaultAsync(a => a.Email.Equals(loginParams.Email) && a.EmailConfirmed == true);
+      ApplicationUser user = await _context.ApplicationUser.FirstOrDefaultAsync(a => a.Email.Equals(loginParams.Email));
       Console.WriteLine("asdasd");
       if (user == null)
         return BadRequest(new { msg = "Wrong Email" });
 
       else if (passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginParams.Password) != PasswordVerificationResult.Success)
         return BadRequest(new { msg = "Wrong Password" });
+
+      else if (user.EmailConfirmed == false)
+      {
+        return BadRequest(new { msg = "Please confirm your email" });
+      }
 
       return Ok(new
       {
@@ -66,18 +75,54 @@ namespace Chim_En_DOTNET.Controllers.API
     [HttpPost("Register")]
     public async Task<IActionResult> Register(RegisterParams registerParams)
     {
-      ApplicationUser registerUser = new ApplicationUser { Email = registerParams.Email, UserName = registerParams.UserName, EmailConfirmed = true };
-
+      Console.WriteLine(1);
+      ApplicationUser registerUser = new ApplicationUser { Email = registerParams.Email, UserName = registerParams.UserName, EmailConfirmed = false };
+      Console.WriteLine(2);
       var result = await _userManager.CreateAsync(registerUser, registerParams.Password);
+      Console.WriteLine(3);
 
       if (result.Succeeded)
+      // if (true)
       {
+        Console.WriteLine(4);
+        var emailConfirmedToken = await _userManager.GenerateEmailConfirmationTokenAsync(registerUser);
+        var confirmLink = Url.Action(nameof(ConfirmEmail), "Account", new { emailConfirmedToken, email = registerUser.Email }, Request.Scheme);
+        Console.WriteLine(5);
+
+        EmailMessage message = new EmailMessage();
+        message.Sender = new MailboxAddress("Self", "Trandaosimanh@gmail.com");
+        message.Reciever = new MailboxAddress("Self", registerUser.Email);
+        message.Subject = "Confirm Email";
+        message.Content = confirmLink;
+        Console.WriteLine(6);
+
+        var mimeMessage = message.CreateMimeMessageFromEmailMessage(message);
+        Console.WriteLine(7);
+
+        using (var smtpClient = new SmtpClient())
+        {
+          smtpClient.CheckCertificateRevocation = false;
+          smtpClient.SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
+
+          smtpClient.Connect("smtp.mailtrap.io", 2525);
+          Console.WriteLine(8);
+
+          await smtpClient.AuthenticateAsync("4d8fccd77e8800", "6fdb8b54c5aa6b");
+          Console.WriteLine(9);
+
+          await smtpClient.SendAsync(mimeMessage);
+          Console.WriteLine(10);
+
+          await smtpClient.DisconnectAsync(true);
+        }
+
+
         return Ok(new
         {
-          token = CreateToken(registerUser)
+          msg = "Email sent"
         });
-      }
 
+      }
       else
       {
         var response = new Hashtable();
@@ -87,9 +132,36 @@ namespace Chim_En_DOTNET.Controllers.API
           response.Add(error.Code, error.Description);
         }
         return BadRequest(response);
+
       }
 
 
+
+
+    }
+
+    [HttpGet("ConfirmEmail")]
+    public async Task<IActionResult> ConfirmEmail(string emailConfirmedToken, string email)
+    {
+      Console.WriteLine(emailConfirmedToken);
+      Console.WriteLine(email);
+      var user = await _userManager.FindByEmailAsync(email);
+
+      if (user == null)
+      {
+        return BadRequest();
+      }
+
+      var result = await _userManager.ConfirmEmailAsync(user, emailConfirmedToken);
+
+      if (result.Succeeded)
+      {
+        return Ok(new
+        {
+          token = CreateToken(user)
+        });
+      }
+      return BadRequest();
     }
 
     // Get user information
@@ -146,8 +218,8 @@ namespace Chim_En_DOTNET.Controllers.API
       List<Claim> claims = new List<Claim> {
           new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
           new Claim(ClaimTypes.Name, user.UserName.ToString()),
-          new Claim("SuperUser", user.isSuperUser.ToString()),
-          new Claim("Staff", user.isStaff.ToString())
+          new Claim("SuperUser", user.IsSuperUser.ToString()),
+          new Claim("Staff", user.IsStaff.ToString())
       };
 
       SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor

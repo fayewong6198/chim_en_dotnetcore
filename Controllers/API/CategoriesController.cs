@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Chim_En_DOTNET.Data;
 using Chim_En_DOTNET.Models;
+using Chim_En_DOTNET.Helpers;
 
 namespace Chim_En_DOTNET.Controllers_API
 {
@@ -23,9 +24,47 @@ namespace Chim_En_DOTNET.Controllers_API
 
     // GET: api/Categories
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
+    public async Task<IActionResult> GetCategories([FromQuery] CategoryFilter categoryFilter)
     {
-      return await _context.Categories.Include(c => c.Products).ToListAsync();
+      CategoryFilter validFilter = new CategoryFilter(categoryFilter.PageNumber, categoryFilter.PageSize, categoryFilter.Search, categoryFilter.OrderBy, categoryFilter.Title);
+
+      var categories = from c in _context.Categories select c;
+
+      // Filter
+      if (!string.IsNullOrEmpty(validFilter.Title))
+      {
+        categories = categories.Where(c => c.title == validFilter.Title);
+      }
+
+      if (!string.IsNullOrEmpty(validFilter.Search))
+      {
+        categories = categories.Where(c => c.title.ToLower().Contains(validFilter.Search.ToLower()));
+      }
+
+      // Sort
+      switch (validFilter.OrderBy.ToLower())
+      {
+        case "title":
+          categories = categories.OrderBy(c => c.title);
+          break;
+        case "-title":
+          categories = categories.OrderByDescending(c => c.title);
+          break;
+        case "-createdat":
+          categories = categories.OrderByDescending(c => c.CreatedAt);
+          break;
+        default:
+          categories = categories.OrderBy(c => c.CreatedAt);
+          break;
+      }
+
+      // Pagination
+      categories = categories.Skip((validFilter.PageNumber - 1) * validFilter.PageSize).Take(validFilter.PageSize);
+
+      var data = await categories.ToListAsync();
+
+      int totalRecord = await _context.Categories.CountAsync();
+      return Ok(new PagedResponse<List<Category>>(data, validFilter.PageNumber, validFilter.PageSize, totalRecord));
     }
 
     // GET: api/Categories/5
