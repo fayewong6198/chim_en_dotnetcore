@@ -28,9 +28,6 @@ namespace Chim_En_DOTNET.Models
 
     public DateTime CreatedAt { get; set; }
 
-
-
-
     public Payment()
     {
       this.Status = StatusChoice.Pending;

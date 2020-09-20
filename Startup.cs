@@ -55,8 +55,8 @@ namespace Chim_En_DOTNET
       services.AddRazorPages();
 
       var notificationMetadata =
- Configuration.GetSection("NotificationMetadata").
- Get<NotificationMetadata>();
+          Configuration.GetSection("NotificationMetadata").
+          Get<NotificationMetadata>();
       services.AddSingleton(notificationMetadata);
 
 

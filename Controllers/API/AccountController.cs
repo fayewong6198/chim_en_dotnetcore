@@ -164,6 +164,18 @@ namespace Chim_En_DOTNET.Controllers.API
       return BadRequest();
     }
 
+    [HttpPost("ConfirmzEmail")]
+    public async Task<IActionResult> GetEmailConfirmLink ([FromBody] string email) {
+      var user = await _userManager.FindByEmailAsync(email);
+
+
+      if (user == null) {
+        return BadRequest(new {msg = "Email not found"});
+      }
+      return Ok();
+    }
+
+
     // Get user information
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [HttpGet("User")]
