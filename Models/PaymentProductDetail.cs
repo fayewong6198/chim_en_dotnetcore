@@ -10,13 +10,15 @@ namespace Chim_En_DOTNET.Models
     public int ProductId { get; set; }
 
     public string ProductName { get; set; }
-    public int ProductAmount { get; set; }
-    public int ProductPrice { get; set; }
-    public int ProductPromotion { get; set; }
 
-    public int GetTotalPrice()
+    public int ProductQuantity { get; set; }
+    public double ProductAmount { get; set; }
+    public int ProductPrice { get; set; }
+    public double ProductPromotion { get; set; }
+
+    public static double GetTotalPrice(PaymentProductDetail paymentProductDetail)
     {
-      return this.ProductPrice * this.ProductAmount * this.ProductPromotion;
+      return paymentProductDetail.ProductPrice * paymentProductDetail.ProductAmount * paymentProductDetail.ProductPromotion;
     }
   }
 }

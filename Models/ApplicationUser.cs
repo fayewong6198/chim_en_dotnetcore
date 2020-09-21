@@ -37,9 +37,10 @@ namespace Chim_En_DOTNET.Models
       this.CreatedAt = DateTime.Now;
     }
 
-    public enum GenderChoices
-    {
-      Male, Female
-    }
+  }
+
+  public enum GenderChoices
+  {
+    Male, Female
   }
 }

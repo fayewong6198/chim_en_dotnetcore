@@ -45,6 +45,11 @@ namespace Chim_En_DOTNET.Migrations
                     Role = table.Column<int>(nullable: true),
                     Mobile = table.Column<string>(nullable: true),
                     FullName = table.Column<string>(nullable: true),
+                    IsStaff = table.Column<bool>(nullable: true),
+                    EmailToken = table.Column<string>(nullable: true),
+                    IsSuperUser = table.Column<bool>(nullable: true),
+                    Gender = table.Column<int>(nullable: true),
+                    DateOfBirth = table.Column<DateTime>(nullable: true),
                     CreatedAt = table.Column<DateTime>(nullable: true),
                     UpdatedAt = table.Column<DateTime>(nullable: true)
                 },
@@ -78,25 +83,6 @@ namespace Chim_En_DOTNET.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_City", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PaymentUserDetail",
-                columns: table => new
-                {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<string>(nullable: true),
-                    FullName = table.Column<string>(nullable: true),
-                    Email = table.Column<string>(nullable: true),
-                    Mobile = table.Column<string>(nullable: true),
-                    City = table.Column<string>(nullable: true),
-                    Disrtict = table.Column<string>(nullable: true),
-                    Address = table.Column<string>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PaymentUserDetail", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -211,15 +197,16 @@ namespace Chim_En_DOTNET.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<string>(nullable: true),
+                    SessionId = table.Column<string>(nullable: true),
+                    ApplicationUserId = table.Column<string>(nullable: true),
                     UpdatedAt = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Cart", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Cart_AspNetUsers_UserId",
-                        column: x => x.UserId,
+                        name: "FK_Cart_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -231,22 +218,42 @@ namespace Chim_En_DOTNET.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<string>(nullable: true),
-                    DevicedId = table.Column<string>(nullable: true),
+                    ApplicationUserId = table.Column<string>(nullable: true),
+                    DeviceId = table.Column<string>(nullable: true),
                     PaymentMethod = table.Column<int>(nullable: false),
-                    Amount = table.Column<int>(nullable: false),
+                    Amount = table.Column<double>(nullable: false),
                     ShipFee = table.Column<int>(nullable: false),
                     Note = table.Column<string>(nullable: true),
                     Status = table.Column<int>(nullable: false),
-                    Total = table.Column<int>(nullable: false),
+                    Total = table.Column<double>(nullable: false),
                     CreatedAt = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Payment", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Payment_AspNetUsers_UserId",
-                        column: x => x.UserId,
+                        name: "FK_Payment_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserPermision",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ApplicationUserId = table.Column<string>(nullable: true),
+                    Permision = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserPermision", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserPermision_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -260,12 +267,14 @@ namespace Chim_En_DOTNET.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     CategoryId = table.Column<int>(nullable: false),
                     Sku = table.Column<string>(nullable: true),
-                    Title = table.Column<string>(nullable: true),
+                    Title = table.Column<string>(nullable: false),
                     Slug = table.Column<string>(nullable: true),
                     Description = table.Column<string>(nullable: true),
                     FullDescription = table.Column<string>(nullable: true),
                     Price = table.Column<int>(nullable: false),
                     Promotion = table.Column<double>(nullable: false),
+                    TotalRating = table.Column<double>(nullable: false),
+                    RatingCount = table.Column<int>(nullable: false),
                     Available = table.Column<int>(nullable: false),
                     Active = table.Column<bool>(nullable: false),
                     CreatedAt = table.Column<DateTime>(nullable: false)
@@ -311,15 +320,42 @@ namespace Chim_En_DOTNET.Migrations
                     PaymentId = table.Column<int>(nullable: false),
                     ProductId = table.Column<int>(nullable: false),
                     ProductName = table.Column<string>(nullable: true),
-                    ProductAmount = table.Column<int>(nullable: false),
+                    ProductQuantity = table.Column<int>(nullable: false),
+                    ProductAmount = table.Column<double>(nullable: false),
                     ProductPrice = table.Column<int>(nullable: false),
-                    ProductPromotion = table.Column<int>(nullable: false)
+                    ProductPromotion = table.Column<double>(nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_PaymentProductDetail", x => x.Id);
                     table.ForeignKey(
                         name: "FK_PaymentProductDetail_Payment_PaymentId",
+                        column: x => x.PaymentId,
+                        principalTable: "Payment",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PaymentUserDetail",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PaymentId = table.Column<int>(nullable: false),
+                    UserId = table.Column<string>(nullable: true),
+                    FullName = table.Column<string>(nullable: true),
+                    Email = table.Column<string>(nullable: true),
+                    Mobile = table.Column<string>(nullable: true),
+                    City = table.Column<string>(nullable: true),
+                    Disrtict = table.Column<string>(nullable: true),
+                    Address = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentUserDetail", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PaymentUserDetail_Payment_PaymentId",
                         column: x => x.PaymentId,
                         principalTable: "Payment",
                         principalColumn: "Id",
@@ -379,6 +415,8 @@ namespace Chim_En_DOTNET.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ApplicationUserId = table.Column<string>(nullable: true),
+                    DeviceId = table.Column<string>(nullable: true),
                     FullName = table.Column<string>(nullable: true),
                     Subject = table.Column<string>(nullable: true),
                     Content = table.Column<string>(nullable: true),
@@ -391,9 +429,35 @@ namespace Chim_En_DOTNET.Migrations
                 {
                     table.PrimaryKey("PK_Review", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Review_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_Review_Product_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Product",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Ward",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    DistrictId = table.Column<int>(nullable: false),
+                    ShipFee = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Ward", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Ward_District_DistrictId",
+                        column: x => x.DistrictId,
+                        principalTable: "District",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -405,13 +469,21 @@ namespace Chim_En_DOTNET.Migrations
                     Id = table.Column<int>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ReviewId = table.Column<int>(nullable: false),
+                    FullName = table.Column<string>(nullable: true),
                     Content = table.Column<string>(nullable: true),
                     CreatedAt = table.Column<DateTime>(nullable: false),
-                    UpdatedAt = table.Column<DateTime>(nullable: false)
+                    UpdatedAt = table.Column<DateTime>(nullable: false),
+                    ApplicationUserId = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Reply", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Reply_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Reply_Review_ReviewId",
                         column: x => x.ReviewId,
@@ -419,6 +491,70 @@ namespace Chim_En_DOTNET.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "Address",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ApplicationUserId = table.Column<string>(nullable: true),
+                    FullName = table.Column<string>(nullable: true),
+                    Company = table.Column<string>(nullable: true),
+                    PhoneNumber = table.Column<string>(nullable: true),
+                    AddressString = table.Column<string>(nullable: true),
+                    CityId = table.Column<int>(nullable: false),
+                    DistrictId = table.Column<int>(nullable: false),
+                    WardId = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Address", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Address_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Address_City_CityId",
+                        column: x => x.CityId,
+                        principalTable: "City",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Address_District_DistrictId",
+                        column: x => x.DistrictId,
+                        principalTable: "District",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Address_Ward_WardId",
+                        column: x => x.WardId,
+                        principalTable: "Ward",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Address_ApplicationUserId",
+                table: "Address",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Address_CityId",
+                table: "Address",
+                column: "CityId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Address_DistrictId",
+                table: "Address",
+                column: "DistrictId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Address_WardId",
+                table: "Address",
+                column: "WardId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -458,9 +594,9 @@ namespace Chim_En_DOTNET.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Cart_UserId",
+                name: "IX_Cart_ApplicationUserId",
                 table: "Cart",
-                column: "UserId");
+                column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CartItem_CartId",
@@ -478,13 +614,18 @@ namespace Chim_En_DOTNET.Migrations
                 column: "CityId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Payment_UserId",
+                name: "IX_Payment_ApplicationUserId",
                 table: "Payment",
-                column: "UserId");
+                column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PaymentProductDetail_PaymentId",
                 table: "PaymentProductDetail",
+                column: "PaymentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PaymentUserDetail_PaymentId",
+                table: "PaymentUserDetail",
                 column: "PaymentId");
 
             migrationBuilder.CreateIndex(
@@ -504,18 +645,41 @@ namespace Chim_En_DOTNET.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Reply_ApplicationUserId",
+                table: "Reply",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Reply_ReviewId",
                 table: "Reply",
                 column: "ReviewId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Review_ApplicationUserId",
+                table: "Review",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Review_ProductId",
                 table: "Review",
                 column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserPermision_ApplicationUserId",
+                table: "UserPermision",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ward_DistrictId",
+                table: "Ward",
+                column: "DistrictId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Address");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -535,9 +699,6 @@ namespace Chim_En_DOTNET.Migrations
                 name: "CartItem");
 
             migrationBuilder.DropTable(
-                name: "District");
-
-            migrationBuilder.DropTable(
                 name: "PaymentProductDetail");
 
             migrationBuilder.DropTable(
@@ -550,13 +711,16 @@ namespace Chim_En_DOTNET.Migrations
                 name: "Reply");
 
             migrationBuilder.DropTable(
+                name: "UserPermision");
+
+            migrationBuilder.DropTable(
+                name: "Ward");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "Cart");
-
-            migrationBuilder.DropTable(
-                name: "City");
 
             migrationBuilder.DropTable(
                 name: "Payment");
@@ -565,10 +729,16 @@ namespace Chim_En_DOTNET.Migrations
                 name: "Review");
 
             migrationBuilder.DropTable(
+                name: "District");
+
+            migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Product");
+
+            migrationBuilder.DropTable(
+                name: "City");
 
             migrationBuilder.DropTable(
                 name: "Category");

@@ -21,5 +21,17 @@ namespace Chim_En_DOTNET.Models
     {
       this.UpdatedAt = DateTime.Now;
     }
+
+    public static int GetTotalPrice(Cart cart)
+    {
+      int price = 0;
+
+      foreach (var cartItem in cart.CartItems)
+      {
+        price += CartItem.GetTotalItemPrice(cartItem);
+      }
+
+      return price;
+    }
   }
 }

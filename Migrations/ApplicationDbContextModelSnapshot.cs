@@ -174,8 +174,8 @@ namespace Chim_En_DOTNET.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<int>("Amount")
-                        .HasColumnType("integer");
+                    b.Property<double>("Amount")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("ApplicationUserId")
                         .HasColumnType("text");
@@ -198,8 +198,8 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Total")
-                        .HasColumnType("integer");
+                    b.Property<double>("Total")
+                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
@@ -218,8 +218,8 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<int>("PaymentId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("ProductAmount")
-                        .HasColumnType("integer");
+                    b.Property<double>("ProductAmount")
+                        .HasColumnType("double precision");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
@@ -230,7 +230,10 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<int>("ProductPrice")
                         .HasColumnType("integer");
 
-                    b.Property<int>("ProductPromotion")
+                    b.Property<double>("ProductPromotion")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("ProductQuantity")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -265,7 +268,7 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<string>("Mobile")
                         .HasColumnType("text");
 
-                    b.Property<int?>("PaymentId")
+                    b.Property<int>("PaymentId")
                         .HasColumnType("integer");
 
                     b.Property<string>("UserId")
@@ -787,9 +790,11 @@ namespace Chim_En_DOTNET.Migrations
 
             modelBuilder.Entity("Chim_En_DOTNET.Models.PaymentUserDetail", b =>
                 {
-                    b.HasOne("Chim_En_DOTNET.Models.Payment", null)
+                    b.HasOne("Chim_En_DOTNET.Models.Payment", "Payment")
                         .WithMany("PaymentUserDetails")
-                        .HasForeignKey("PaymentId");
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Chim_En_DOTNET.Models.Product", b =>

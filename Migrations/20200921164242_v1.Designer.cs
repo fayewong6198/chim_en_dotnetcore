@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chim_En_DOTNET.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200915123008_add staff2")]
-    partial class addstaff2
+    [Migration("20200921164242_v1")]
+    partial class v1
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -176,8 +176,8 @@ namespace Chim_En_DOTNET.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<int>("Amount")
-                        .HasColumnType("integer");
+                    b.Property<double>("Amount")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("ApplicationUserId")
                         .HasColumnType("text");
@@ -185,7 +185,7 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<string>("DevicedId")
+                    b.Property<string>("DeviceId")
                         .HasColumnType("text");
 
                     b.Property<string>("Note")
@@ -200,8 +200,8 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Total")
-                        .HasColumnType("integer");
+                    b.Property<double>("Total")
+                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
@@ -220,8 +220,8 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<int>("PaymentId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("ProductAmount")
-                        .HasColumnType("integer");
+                    b.Property<double>("ProductAmount")
+                        .HasColumnType("double precision");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
@@ -232,7 +232,10 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<int>("ProductPrice")
                         .HasColumnType("integer");
 
-                    b.Property<int>("ProductPromotion")
+                    b.Property<double>("ProductPromotion")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("ProductQuantity")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -267,10 +270,15 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<string>("Mobile")
                         .HasColumnType("text");
 
+                    b.Property<int>("PaymentId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("UserId")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PaymentId");
 
                     b.ToTable("PaymentUserDetail");
                 });
@@ -306,6 +314,9 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<double>("Promotion")
                         .HasColumnType("double precision");
 
+                    b.Property<int>("RatingCount")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Sku")
                         .HasColumnType("text");
 
@@ -315,6 +326,9 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<double>("TotalRating")
+                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
@@ -395,6 +409,9 @@ namespace Chim_En_DOTNET.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("DeviceId")
+                        .HasColumnType("text");
 
                     b.Property<string>("FullName")
                         .HasColumnType("text");
@@ -674,6 +691,9 @@ namespace Chim_En_DOTNET.Migrations
                     b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<string>("EmailToken")
+                        .HasColumnType("text");
+
                     b.Property<string>("FullName")
                         .HasColumnType("text");
 
@@ -764,7 +784,16 @@ namespace Chim_En_DOTNET.Migrations
             modelBuilder.Entity("Chim_En_DOTNET.Models.PaymentProductDetail", b =>
                 {
                     b.HasOne("Chim_En_DOTNET.Models.Payment", "Payment")
-                        .WithMany()
+                        .WithMany("PaymentProductDetails")
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Chim_En_DOTNET.Models.PaymentUserDetail", b =>
+                {
+                    b.HasOne("Chim_En_DOTNET.Models.Payment", "Payment")
+                        .WithMany("PaymentUserDetails")
                         .HasForeignKey("PaymentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -795,7 +824,7 @@ namespace Chim_En_DOTNET.Migrations
                         .HasForeignKey("ApplicationUserId");
 
                     b.HasOne("Chim_En_DOTNET.Models.Review", "Review")
-                        .WithMany()
+                        .WithMany("Replies")
                         .HasForeignKey("ReviewId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

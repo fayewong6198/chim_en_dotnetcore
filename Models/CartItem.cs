@@ -14,9 +14,9 @@ namespace Chim_En_DOTNET.Models
     public Cart Cart { get; set; }
     public Product Product { get; set; }
 
-    public int GetTotalItemPrice()
+    public static int GetTotalItemPrice(CartItem cartItem)
     {
-      return this.Quantity * this.Product.GetPrice();
+      return cartItem.Quantity * cartItem.Product.GetPrice();
     }
 
     public CartItem()

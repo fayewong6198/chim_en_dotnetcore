@@ -275,18 +275,89 @@ namespace Chim_En_DOTNET.Controllers.API
     }
 
     [HttpPost("CreatePayment")]
-    public async Task<IActionResult> CreatePayment()
+    public async Task<IActionResult> CreatePayment(PaymentParams paymentParams)
     {
       string sessionId = HttpContext.Request.Headers["SessionId"].FirstOrDefault();
+
+      Cart cart = new Cart();
+      string id = User.Claims.FirstOrDefault(c => c.Type.Equals(ClaimTypes.NameIdentifier)).Value;
+
       if (User.Identity.IsAuthenticated)
       {
-        return Ok();
+        cart = await _context.Carts.FirstOrDefaultAsync(c => c.ApplicationUserId.Equals(id));
       }
       else if (!string.IsNullOrEmpty(sessionId))
       {
-        return Ok();
+        cart = await _context.Carts.FirstOrDefaultAsync(c => c.SessionId.Equals(sessionId));
       }
-      return Unauthorized();
+
+      else
+      {
+        return Unauthorized();
+      }
+
+      var cartItems = await _context.CartItems.Where(c => c.CartId == cart.Id).Include(c => c.Product).ToListAsync();
+      var city = await _context.Cities.FindAsync(paymentParams.City);
+      var district = await _context.Districts.FindAsync(paymentParams.District);
+
+      if (district == null || city == null)
+      {
+        return BadRequest(new { msg = "District not found" });
+      }
+
+      // Create Payment
+      Payment payment = new Payment();
+      if (User.Identity.IsAuthenticated)
+      {
+        payment.ApplicationUserId = id;
+      }
+      else
+      {
+        payment.DeviceId = sessionId;
+      }
+
+      payment.ShipFee = district.ShipFee;
+      payment.PaymentMethod = PaymentMethodChoice.COD;
+      payment.Note = paymentParams.Note;
+      payment.Amount = Cart.GetTotalPrice(cart);
+      payment.Total = payment.Amount + payment.ShipFee;
+
+      await _context.AddAsync(payment);
+      try
+      {
+        foreach (var cartItem in cartItems)
+        {
+          var paymentProductDetail = new PaymentProductDetail();
+
+          paymentProductDetail.PaymentId = payment.Id;
+          paymentProductDetail.ProductId = cartItem.ProductId;
+          paymentProductDetail.ProductQuantity = cartItem.Quantity;
+          paymentProductDetail.ProductPrice = cartItem.Product.Price;
+          paymentProductDetail.ProductPromotion = cartItem.Product.Promotion;
+          paymentProductDetail.ProductAmount = paymentProductDetail.ProductPrice * paymentProductDetail.ProductQuantity * paymentProductDetail.ProductPromotion;
+
+          await _context.AddAsync(paymentProductDetail);
+
+        }
+
+        var paymentUserDetail = new PaymentUserDetail();
+        paymentUserDetail.City = city.Name;
+        paymentUserDetail.Disrtict = district.Name;
+        paymentUserDetail.FullName = paymentParams.FullName;
+        paymentUserDetail.Email = paymentParams.Email;
+        paymentUserDetail.Mobile = paymentParams.PhoneNumber;
+        paymentUserDetail.PaymentId = payment.Id;
+
+        await _context.AddAsync(paymentUserDetail);
+
+      }
+      catch
+      {
+        _context.Remove(payment);
+        return BadRequest();
+      }
+
+      return Ok();
     }
   }
 
@@ -304,6 +375,12 @@ namespace Chim_En_DOTNET.Controllers.API
 
   public class PaymentParams
   {
-
+    public string FullName { get; set; }
+    public string Email { get; set; }
+    public string PhoneNumber { get; set; }
+    public int City { get; set; }
+    public int District { get; set; }
+    public string Address { get; set; }
+    public string Note { get; set; }
   }
 }

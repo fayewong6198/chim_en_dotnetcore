@@ -135,9 +135,6 @@ namespace Chim_En_DOTNET.Controllers.API
 
       }
 
-
-
-
     }
 
     [HttpGet("ConfirmEmail")]
@@ -164,15 +161,53 @@ namespace Chim_En_DOTNET.Controllers.API
       return BadRequest();
     }
 
-    [HttpPost("ConfirmzEmail")]
-    public async Task<IActionResult> GetEmailConfirmLink ([FromBody] string email) {
+    [HttpPost("GetEmailConfirm")]
+    public async Task<IActionResult> GetEmailConfirmLink([FromBody] string email)
+    {
       var user = await _userManager.FindByEmailAsync(email);
 
-
-      if (user == null) {
-        return BadRequest(new {msg = "Email not found"});
+      if (user == null)
+      {
+        return BadRequest(new { msg = "Email not found" });
       }
-      return Ok();
+
+      var emailConfirmedToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+      var confirmLink = Url.Action(nameof(ConfirmEmail), "Account", new { emailConfirmedToken, email = user.Email }, Request.Scheme);
+
+
+      EmailMessage message = new EmailMessage();
+      message.Sender = new MailboxAddress("Self", "Trandaosimanh@gmail.com");
+      message.Reciever = new MailboxAddress("Self", email);
+      message.Subject = "Confirm Email";
+      message.Content = confirmLink;
+
+
+      var mimeMessage = message.CreateMimeMessageFromEmailMessage(message);
+
+
+      using (var smtpClient = new SmtpClient())
+      {
+        smtpClient.CheckCertificateRevocation = false;
+        smtpClient.SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
+
+        smtpClient.Connect("smtp.mailtrap.io", 2525);
+
+
+        await smtpClient.AuthenticateAsync("4d8fccd77e8800", "6fdb8b54c5aa6b");
+
+
+        await smtpClient.SendAsync(mimeMessage);
+
+
+        await smtpClient.DisconnectAsync(true);
+      }
+
+
+      return Ok(new
+      {
+        msg = "Email sent"
+      });
+
     }
 
 
@@ -205,6 +240,59 @@ namespace Chim_En_DOTNET.Controllers.API
         phoneNumber = user.PhoneNumber,
         role = user.Role
       });
+    }
+
+    [Authorize]
+    [HttpPost("ChangePassword")]
+    public async Task<IActionResult> ChangePassword(ChangePasswordParams changePasswordParams)
+    {
+      if (!changePasswordParams.NewPassword.Equals(changePasswordParams.ConfirmPassword))
+      {
+        return BadRequest(new { msg = "Wrong password confirm" });
+      }
+
+      string id = User.Claims.FirstOrDefault(c => c.Type.Equals(ClaimTypes.NameIdentifier)).Value;
+      ApplicationUser user = await _context.ApplicationUser.FindAsync(id);
+
+      if (user == null)
+      {
+        return BadRequest(new { msg = "User not found" });
+      }
+
+      if (passwordHasher.VerifyHashedPassword(user, user.PasswordHash, changePasswordParams.OldPassword) != PasswordVerificationResult.Success)
+      {
+        return BadRequest(new { msg = "Password does not match" });
+      }
+
+
+      user.PasswordHash = passwordHasher.HashPassword(user, changePasswordParams.NewPassword);
+
+      await _context.SaveChangesAsync();
+
+      return Ok();
+    }
+
+    [HttpPost("ChangeInfo")]
+    [Authorize]
+    public async Task<IActionResult> ChangeInfo(ChangeInfoParams changeInfoParams)
+    {
+      string id = User.Claims.FirstOrDefault(c => c.Type.Equals(ClaimTypes.NameIdentifier)).Value;
+      var user = await _context.ApplicationUser.FindAsync(id);
+
+      if (user == null)
+      {
+        return NotFound(new { msg = "User not found" });
+      }
+
+      user.FullName = changeInfoParams.FullName;
+      user.PhoneNumber = changeInfoParams.PhoneNumber;
+      user.Gender = changeInfoParams.Gender;
+      user.DateOfBirth = changeInfoParams.DateOfBirth;
+
+      await _context.SaveChangesAsync();
+      user = await _context.ApplicationUser.FindAsync(id);
+
+      return Ok(user);
     }
 
     [HttpPost("SessionId")]
@@ -261,5 +349,21 @@ namespace Chim_En_DOTNET.Controllers.API
     public string Email { get; set; }
     public string UserName { get; set; }
     public string Password { get; set; }
+  }
+
+  public class ChangePasswordParams
+  {
+    public string OldPassword { get; set; }
+    public string NewPassword { get; set; }
+    public string ConfirmPassword { get; set; }
+  }
+
+  public class ChangeInfoParams
+  {
+    public string FullName { get; set; }
+    public string PhoneNumber { get; set; }
+    public GenderChoices Gender { get; set; }
+
+    public DateTime DateOfBirth { get; set; }
   }
 }

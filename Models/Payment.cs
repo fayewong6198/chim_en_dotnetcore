@@ -15,7 +15,7 @@ namespace Chim_En_DOTNET.Models
 
     public PaymentMethodChoice PaymentMethod { get; set; }
 
-    public int Amount { get; set; }
+    public double Amount { get; set; }
 
     public int ShipFee { get; set; }
 
@@ -24,7 +24,7 @@ namespace Chim_En_DOTNET.Models
     public ICollection<PaymentProductDetail> PaymentProductDetails { get; set; }
     public ICollection<PaymentUserDetail> PaymentUserDetails { get; set; }
     public StatusChoice Status { get; set; }
-    public int Total { get; set; }
+    public double Total { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
